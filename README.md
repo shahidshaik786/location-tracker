@@ -31,4 +31,4 @@ Then open `http://localhost:5959/`
 This platform is strictly for educational and research purposes only.  
 The creators are not responsible for any misuse or illegal activity. Use responsibly and in compliance with applicable laws.
 
-© 2025 [locator.nullx.in](https://locator.nullx.in) – All rights reserved.
+© 2025 [track.nullx.in](https://track.nullx.in) – All rights reserved.
